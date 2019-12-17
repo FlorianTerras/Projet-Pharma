@@ -7,6 +7,7 @@ CentralWidgetOrdonnance::CentralWidgetOrdonnance(MainWindow *parent)
     this->setParent(parent);
     listeProduit = new QStringList;
     listeCodePrdt = new QStringList;
+    renouvellement = 0;
     fillListeProduit();
     QGridLayout *VBL = new QGridLayout;
     this->setLayout(VBL);
@@ -20,7 +21,6 @@ QWidget *CentralWidgetOrdonnance::createInfoWidget()
 {
     QStringList strlist = parent_t->getSelectedPatient(); // contient les infos du patient selectionné
     QWidget *infoOrdo = new QWidget(this);
-//    VBL->addWidget(infoOrdo);
     strDuree = "28";
     datePrescr = new QDate(QDate::currentDate());
     dateDebut = new QDate(QDate::currentDate());
@@ -72,8 +72,6 @@ QWidget *CentralWidgetOrdonnance::createInfoWidget()
     GL->addWidget(label, 0, 0, 1, 4);
     label = new QLabel("Nom", infoOrdo);
     GL->addWidget(label, 1, 0);
-    label = new QLabel("Prénom", infoOrdo);
-    GL->addWidget(label, 1, 1);
     label = new QLabel("Date de préscription", infoOrdo);
     GL->addWidget(label, 1, 2);
     label = new QLabel("Date de début", infoOrdo);
@@ -84,10 +82,8 @@ QWidget *CentralWidgetOrdonnance::createInfoWidget()
     GL->addWidget(label, 3, 2);
     label = new QLabel("Renouvellable", infoOrdo);
     GL->addWidget(label, 3, 3, 1, 2);
-    lineEdit = new QLineEdit;
-    GL->addWidget(lineEdit, 2, 0);
-    lineEdit = new QLineEdit;
-    GL->addWidget(lineEdit, 2, 1);
+    QLineEdit *lineEditNomMedecin = new QLineEdit;
+    GL->addWidget(lineEditNomMedecin, 2, 0);
     QDateEdit *dateEdit = new QDateEdit(*datePrescr);//date presc
     dateEdit->setDisplayFormat("dd/MM/yyyy");
     dateEdit->setCalendarPopup(true);
@@ -102,39 +98,32 @@ QWidget *CentralWidgetOrdonnance::createInfoWidget()
     calendar->setGridVisible(true);
     dateEditDebut->setCalendarWidget(calendar);
     GL->addWidget(dateEditDebut, 4, 0);
-    QSpinBox *lineEditDuree = new QSpinBox();                 //duree
-    lineEditDuree->setValue(strDuree.toInt());
-//    lineEditDuree->setSuffix(" jours");
-    lineEditDuree->setRange(0,9999);
-    GL->addWidget(lineEditDuree, 4, 1);
+    QSpinBox *spinBoxDuree = new QSpinBox();    //duree
+    spinBoxDuree->setValue(strDuree.toInt());
+    spinBoxDuree->setRange(0,9999);
+    GL->addWidget(spinBoxDuree, 4, 1);
     lineEditDateFin = new QLineEdit(dateFin->toString(Qt::SystemLocaleShortDate));  //Fin
     GL->addWidget(lineEditDateFin, 4, 2);
     lineEditDateFin->setReadOnly(true);
-    QSpinBox *spinbox = new QSpinBox();                                 //Renouvellement
+    QSpinBox *spinbox = new QSpinBox(); //Renouvellement
     spinbox->setValue(0);
     GL->addWidget(spinbox, 4, 3, 1, 2);
     GL->setAlignment(Qt::AlignTop);
 
     connect(dateEditDebut, SIGNAL(dateChanged(const QDate &)), this, SLOT(saveDateDebut(const QDate &)));
-    connect(lineEditDuree, SIGNAL(valueChanged(const QString &)), this, SLOT(saveStrDuree(const QString &)));
-    connect(lineEditDuree, SIGNAL(valueChanged(QString)), this, SLOT(changeDateFin()));
+    connect(spinBoxDuree, SIGNAL(valueChanged(const QString &)), this, SLOT(saveStrDuree(const QString &)));
+    connect(spinBoxDuree, SIGNAL(valueChanged(QString)), this, SLOT(changeDateFin()));
+    connect(spinbox, SIGNAL(valueChanged(int)), this, SLOT(saveRenouvellement(int)));
+    connect(lineEditNomMedecin, SIGNAL(textChanged(const QString &)), this, SLOT(saveNomMedecin(const QString &)));
     connect(dateEditDebut, SIGNAL(dateChanged(QDate)), this, SLOT(changeDateFin()));
     return (infoOrdo);
 }
 
 QWidget *CentralWidgetOrdonnance::createListWidget()
 {
-    tmpFile = new QTemporaryFile;
-    if (!tmpFile->open()) {
-        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir " + tmpFile->fileName());
-        return(nullptr);
-    }
-    QTextStream in(tmpFile);
-    in << QString("Code;Produit;Matin;Midi;Soir;Couché;??H;??H;Fréquence;Durée;Si besoin;commentaire;\n;;;;;;;;;;;;\n");
-    in.flush();
-    in.seek(0);
-    QString str = in.readAll();
-    tmpFile->close();
+    tmpString = new QString;
+    *tmpString = "Code;Produit;Matin;Midi;Soir;Couché;??H;??H;Fréquence;Durée;Si besoin;commentaire;\n;;;;;;;;;;;;\n";
+    QString str = *tmpString;
     QWidget *list = new QWidget(this);
     list->setAutoFillBackground(true);
     list->setPalette(Qt::lightGray);
@@ -142,9 +131,9 @@ QWidget *CentralWidgetOrdonnance::createListWidget()
     tableView = new QTableView(list);
     layout->setMargin(2);
     layout->addWidget(tableView);
-    model = new TableModelOrdo();
-    model->populateData(str);
-    tableView->setModel(model);
+    modelO = new TableModelOrdo();
+    modelO->populateData(str);
+    tableView->setModel(modelO);
     tableView->resizeColumnsToContents();
     for (int i = 0; tableView->columnAt(i) != -1; i++)
         tableView->setColumnWidth(i, tableView->columnWidth(i) + 30);
@@ -163,9 +152,9 @@ QWidget *CentralWidgetOrdonnance::createListWidget()
     VBL->addWidget(buttonSuppr);
     VBL->setAlignment(Qt::AlignTop);
 
-    connect(model, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)), this, SLOT(actualiserList(const QModelIndex &)));
+    connect(modelO, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)), this, SLOT(actualiserList(const QModelIndex &)));
     connect(buttonAdd, SIGNAL(clicked()), this, SLOT(addProduit()));
-    connect(buttonSuppr, SIGNAL(clicked()), model, SLOT(getData()));
+    connect(buttonSuppr, SIGNAL(clicked()), modelO, SLOT(getData()));
     return list;
 }
 
@@ -178,42 +167,67 @@ QWidget *CentralWidgetOrdonnance::createHistoryWidget()
     QTableView *tableView = new QTableView(history);
     layout->setMargin(2);
     layout->addWidget(tableView);
-    TableModelOrdo *model = new TableModelOrdo();
-    tableView->setModel(model);
-    tableView->resizeColumnsToContents();
-    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    modelH = new TableModelHistory(*modelO, this);
 
     QHBoxLayout *HBL = new QHBoxLayout;
     layout->addLayout(HBL);
     QPushButton *buttonVal = new QPushButton("Valider");
     buttonVal->setAutoFillBackground(true);
     buttonVal->setPalette(QPalette(Qt::green));
-    QPushButton *buttonSuppr = new QPushButton("Annuler");
+    QPushButton *buttonAnnul = new QPushButton("Annuler");
     HBL->addWidget(buttonVal);
-    HBL->addWidget(buttonSuppr);
+    HBL->addWidget(buttonAnnul);
     HBL->setAlignment(Qt::AlignLeft);
 
-    connect(buttonVal, SIGNAL(clicked()), this, SLOT(valider()));
+    QStringList strlist = parent_t->getSelectedPatient();
+    QString filename = strlist.value(1) + "-" + strlist.value(2) + "-" + strlist.value(3);
+    filename = "Data/ordonnances/" + filename + ".txt";
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        modelH->populateData(";;;;;;;;;;;;;;;;");
+    } else {
+        QTextStream out(&file);
+        QString data = out .readAll();
+        modelH->populateData(data);
+    }
+    QSortFilterProxyModel *m=new QSortFilterProxyModel(tableView);
+    m->setDynamicSortFilter(true);
+    m->setSourceModel(modelH);
+    tableView->setModel(m);
+    tableView->setSortingEnabled(true);
+    tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    tableView->setFocusPolicy(Qt::NoFocus);
+    tableView->setSelectionMode(QAbstractItemView::NoSelection);
+    tableView->resizeColumnsToContents();
 
+    connect(modelO, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)), modelH, SLOT(compare()));
+    connect(buttonVal, SIGNAL(clicked()), this, SLOT(valider()));
+    connect(buttonAnnul, SIGNAL(clicked()), this, SLOT(annuler()));
     return history;
 }
 
 void CentralWidgetOrdonnance::actualiserList(const QModelIndex &index)
 {
-    QString mlo = model->getData();
+    QString mlo = modelO->getData();
     QStringList mloSplit = mlo.split("\n");
 
+    // gère l'autoremplissage du code produit ou du nom produit selon la colonne remplie
     if (index.column() == 1) {
         QString data = index.data().toString();
         QStringList splitSplit = mloSplit.value(index.row() + 1).split(";");
         for(int i = 0; i < listeProduit->length(); i++)
             if (listeProduit->value(i) == data) {
                 splitSplit.replace(0, listeCodePrdt->value(i));
-                qDebug() << "Code produit n°" << i << " : " << listeCodePrdt->value(i);
                 QString lkj;
                 for (int j = 0; j < splitSplit.length() - 1; j++)
                 {
-                    lkj.append(splitSplit.value(j));
+                    if (j >= 2 && j <= 7 && splitSplit.value(j) == "")
+                        lkj.append("0");
+                    else if (j == 9 && splitSplit.value(j) == "") {
+                        int bd = strDuree.toInt() * (1 + renouvellement);
+                        lkj.append(QString::number(bd));
+                    } else
+                        lkj.append(splitSplit.value(j));
                     lkj.append(";");
                 }
                 mloSplit.replace(index.row() + 1, lkj);
@@ -223,20 +237,23 @@ void CentralWidgetOrdonnance::actualiserList(const QModelIndex &index)
                     mlo.append(mloSplit.value(j));
                     mlo.append("\n");
                 }
-                qDebug() << "mlo : " << mlo;
                 break;
             }
     } else if (index.column() == 0) {
         QString data = index.data().toString();
         QStringList splitSplit = mloSplit.value(index.row() + 1).split(";");
-        for(int i = 0; i < listeCodePrdt->length(); i++)
+        for(int i = 0; i < listeCodePrdt->length(); i++) {
             if (listeCodePrdt->value(i) == data) {
                 splitSplit.replace(1, listeProduit->value(i));
-                qDebug() << "liste produit n°" << i << " : " << listeProduit->value(i);
                 QString lkj;
                 for (int j = 0; j < splitSplit.length() - 1; j++)
                 {
-                    lkj.append(splitSplit.value(j));
+                    if (j >= 2 && j <= 7 && splitSplit.value(j) == "")
+                        lkj.append("0");
+                    else if (j == 9 && splitSplit.value(j) == "")
+                        lkj.append(strDuree);
+                    else
+                        lkj.append(splitSplit.value(j));
                     lkj.append(";");
                 }
                 mloSplit.replace(index.row() + 1, lkj);
@@ -245,9 +262,9 @@ void CentralWidgetOrdonnance::actualiserList(const QModelIndex &index)
                     mlo.append(mloSplit.value(j));
                     mlo.append("\n");
                 }
-                qDebug() << "mlo : " << mlo;
                 break;
             }
+        }
     }
     for(int i = 0; i < mloSplit.length() - 2; i++) {
         if (mloSplit.value(i) == ";;;;;;;;;;;;") {
@@ -257,39 +274,21 @@ void CentralWidgetOrdonnance::actualiserList(const QModelIndex &index)
                 mlo.append(mloSplit.value(j));
                 mlo.append("\n");
             }
-            model->removeRow(i);
+            modelO->removeRow(i);
         }
     }
     if (mloSplit.value(mloSplit.length() - 2) != ";;;;;;;;;;;;") {
         mlo.append(";;;;;;;;;;;;\n");
     }
-    model->populateData(mlo);
-    model->insertRow(model->rowCount(QModelIndex()));
+    modelO->populateData(mlo);
     tableView->resizeColumnsToContents();
     for (int i = 0; tableView->columnAt(i) != -1; i++)
         tableView->setColumnWidth(i, tableView->columnWidth(i) + 30);
-    if (!tmpFile->open()) {
-        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir " + tmpFile->fileName());
-        return;
-    }
-    QTextStream tmpio(tmpFile);
-    tmpio << mlo;
-    tmpFile->close();
+    *tmpString = mlo;
 }
 
 void CentralWidgetOrdonnance::addProduit()
 {
-/*    if (!tmpFile->open()) {
-        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir " + tmpFile->fileName());
-        return;
-    }
-    QTextStream in(tmpFile);
-    QString str = in.readAll();
-    in << str << "Medecin;Nom;Matin;Midi;Soir;Couché;??H;??H;\nTANNYERES;EFFERALGAN 500MG;1;0;0;1;0;0;\n"; // mettre le produit a ajouter
-
-    in.flush();
-    in.seek(0);*/
-
     QWidget *window = new QWidget(this, Qt::Dialog);
     window->setWindowTitle("Ajouter un produit");
     QVBoxLayout *VBL = new QVBoxLayout(window);
@@ -378,22 +377,40 @@ void CentralWidgetOrdonnance::saveStrDuree(const QString &str)
     strDuree = str;
 }
 
+void CentralWidgetOrdonnance::saveRenouvellement(int ren)
+{
+    renouvellement = ren;
+    qDebug() << "save renouvellement =" << ren;
+}
+
 void CentralWidgetOrdonnance::changeDateFin()
 {
     QDate date = dateDebut->addDays(strDuree.toInt());
     lineEditDateFin->setText(date.toString(Qt::SystemLocaleShortDate));
 }
 
+void CentralWidgetOrdonnance::saveNomMedecin(const QString &str)
+{
+    strNomMedecin = str;
+}
 
 void CentralWidgetOrdonnance::valider()
 {
-    if (!tmpFile->open()) {
-        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir " + tmpFile->fileName());
-        return;
-    }
-    QTextStream tmpio(tmpFile);
-    tmpio.seek(0);
-    writeFile(tmpio.readAll());
+    writeFile(*tmpString);
+    this->close();
+    QFrame *frame = new QFrame;
+    frame->setAutoFillBackground(true);
+    frame->setPalette(QColor(Qt::darkGray));
+    parent_t->setCentralWidget(frame);
+}
+
+void CentralWidgetOrdonnance::annuler()
+{
+    this->close();
+    QFrame *frame = new QFrame;
+    frame->setAutoFillBackground(true);
+    frame->setPalette(QColor(Qt::darkGray));
+    parent_t->setCentralWidget(frame);
 }
 
 void CentralWidgetOrdonnance::writeFile(QString str)
@@ -407,10 +424,15 @@ void CentralWidgetOrdonnance::writeFile(QString str)
         return;
     }
     QTextStream in(&file);
-    in << str;
-
-    qDebug() << "Write : " << str;
-
+    QStringList sList = str.split("\n");
+    for(int i = 1; i < sList.length() - 2; i++) {
+        in << strNomMedecin + ";";
+        in << dateDebut->toString(Qt::SystemLocaleShortDate) + ";";
+        in << strDuree + ";";
+        in << dateFin->toString(Qt::SystemLocaleShortDate) + ";";
+        in << sList.value(i);
+        in << "\n";
+    }
     QMessageBox::information(this, "", "Ordonnance enregistrée\n\nChemin d'accès :" + filename);
 }
 
@@ -418,3 +440,4 @@ QStringList *CentralWidgetOrdonnance::getListeProduit()
 {
     return listeProduit;
 }
+

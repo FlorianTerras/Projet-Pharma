@@ -44,8 +44,6 @@ class MainWindow : public QMainWindow
 
         QAction *actionQuitter;
 
-        QTextEdit *textEdit;
-
         QListWidget *groupeList;
         QListWidget *secteurList;
         QListWidget *patientsList;

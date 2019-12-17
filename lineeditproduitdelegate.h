@@ -35,7 +35,6 @@ class LineEditProduitDelegate : public QStyledItemDelegate
         void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
         {
             QLineEdit *lineEdit = static_cast<QLineEdit*>(editor);
-        //    lineEdit->returnPressed();
             QString value = lineEdit->text();
 
             model->setData(index, value, Qt::EditRole);

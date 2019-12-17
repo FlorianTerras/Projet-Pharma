@@ -7,13 +7,16 @@
 #include "windowviewproduit.h"
 #include "centralwidgetordonnance.h"
 
-MainWindow::MainWindow() : textEdit(new QTextEdit)
+MainWindow::MainWindow()
 {
     filenameGroupe = "Data/groupes.txt";
     filenamePatients = "Data/Patient Baou.txt";
     filenameProduits = "Data/Produits.csv";
 
-    setCentralWidget(textEdit);
+    QFrame *frame = new QFrame;
+    frame->setAutoFillBackground(true);
+    frame->setPalette(QColor(Qt::darkGray));
+    setCentralWidget(frame);
     createMenus();
     createListes();
     createDockWindows();
@@ -108,7 +111,7 @@ void MainWindow::actualiser()
 
 void MainWindow::save()
 {
-    QMimeDatabase mimeDatabase;
+/*    QMimeDatabase mimeDatabase;
     QString fileName = QFileDialog::getSaveFileName(this,
                         tr("Choose a file name"), ".",
                         mimeDatabase.mimeTypeForName("text/html").filterString());
@@ -127,13 +130,13 @@ void MainWindow::save()
     out << textEdit->toHtml();
     QGuiApplication::restoreOverrideCursor();
 
-    statusBar()->showMessage(tr("Saved '%1'").arg(fileName), 2000);
+    statusBar()->showMessage(tr("Saved '%1'").arg(fileName), 2000);*/
 }
 
 void MainWindow::undo()
 {
-    QTextDocument *document = textEdit->document();
-    document->undo();
+/*    QTextDocument *document = textEdit->document();
+    document->undo();*/
 }
 
 void MainWindow::createMenus()
@@ -208,7 +211,7 @@ void MainWindow::fillPatientStringList(QString str)
             mdr = i;
             etape1 = 1;
         }
-    } 
+    }
     for (int i = 0; i < tabListeSecteur->at(mdr).length(); i++)
         if (tabListeSecteur->value(mdr)[i] == tab[12]) {
             sect = i;

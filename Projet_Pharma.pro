@@ -6,6 +6,7 @@ HEADERS += \
     lineeditproduitdelegate.h \
     mainwindow.h \
     tablemodel.h \
+    tablemodelhistory.h \
     tablemodelordo.h \
     tablemodelpatient.h \
     windowviewgroupe.h \
@@ -18,6 +19,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     tablemodel.cpp \
+    tablemodelhistory.cpp \
     tablemodelordo.cpp \
     tablemodelpatient.cpp \
     windowviewgroupe.cpp \

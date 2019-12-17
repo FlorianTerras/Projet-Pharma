@@ -1,6 +1,7 @@
 #include "tablemodelordo.h"
 
 #include <QDebug>
+#include <QColor>
 
 TableModelOrdo::TableModelOrdo(QObject *parent) : QAbstractTableModel(parent)
 {
@@ -85,6 +86,9 @@ bool TableModelOrdo::setData(const QModelIndex &index, const QVariant &value, in
             checkState->replace(index.row(), Qt::Checked);
         }
         emit dataChanged(index,index);
+        return true;
+    } else if(role == Qt::BackgroundRole) {
+        QColor(20,200,60, 210);
         return true;
     }
     return false;
