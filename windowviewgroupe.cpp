@@ -52,7 +52,6 @@ void WindowViewGroupe::addGroupe()
         QTextStream out(&file);
             out << strmdr << ";" << "\n";
     }
-//    actualiser();
 }
 
 void WindowViewGroupe::supprGroupe()

@@ -20,10 +20,8 @@ class MainWindow : public QMainWindow
         void actualiser();  //relis les fichiers et actualise l'affichage
 
     private slots:
-        void save();
-        void undo();
- //       void about();
         void changeListPatients();  //actualise la liste de patient affiché par rapport au groupe et au secteur sélectionné
+        void searchForPatient(const QString &text); //barre de recherche des patients
         void changeListSecteur();   //actualise la liste de secteur par rapport au groupe selectionné
         void toggleFullscreen(bool);    //Mettre l'application en plein-écran ou non
         void createListes();    //creer les listes et les remplis
@@ -31,6 +29,7 @@ class MainWindow : public QMainWindow
         void voirSecteur(); //creer une fenêtre permettant d'ajouter/supprimer des secteurs
         void voirPatient(); //creer une fenêtre permettant d'ajouter/modifier/supprimer des patients
         void voirProduit(); //creer une fenêtre permettant d'afficher la liste des produits
+        void voirMedecin();
         void createOrdo();  //creer le widget ordonnance et le met en tant que widget central
 
     private:
@@ -57,6 +56,14 @@ class MainWindow : public QMainWindow
         QString filenameGroupe;
         QString filenamePatients;
         QString filenameProduits;
+        QString filenameMedecin;
+
+        QWidget *_viewGroupe;
+        QWidget *_viewSecteur;
+        QWidget *_viewPatient;
+        QWidget *_viewProduit;
+        QWidget *_viewMedecin;
+        QLineEdit *searchBarPatient;
 };
 
 #endif // MAINWINDOW_H

@@ -5,6 +5,7 @@
 #include "windowviewsecteur.h"
 #include "windowviewpatient.h"
 #include "windowviewproduit.h"
+#include "windowviewmedecin.h"
 #include "centralwidgetordonnance.h"
 
 MainWindow::MainWindow()
@@ -12,15 +13,15 @@ MainWindow::MainWindow()
     filenameGroupe = "Data/groupes.txt";
     filenamePatients = "Data/Patient Baou.txt";
     filenameProduits = "Data/Produits.csv";
+    filenameMedecin = "Data/medecin.txt";
 
     QFrame *frame = new QFrame;
     frame->setAutoFillBackground(true);
     frame->setPalette(QColor(Qt::darkGray));
     setCentralWidget(frame);
-    createMenus();
     createListes();
+    createMenus();
     createDockWindows();
-
     setWindowTitle(tr("Projet Pharmacie"));
 
     this->resize(1670, 900);
@@ -50,8 +51,15 @@ void MainWindow::createDockWindows()
 
     dock = new QDockWidget(tr("Patients"), this);
     dock->setFeatures(nullptr);
-    patientsList = new QListWidget(dock);
-    dock->setWidget(patientsList);
+    QWidget* multiWidget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout();
+    searchBarPatient = new QLineEdit();
+    searchBarPatient->setPlaceholderText(QString("Rechercher un patient"));
+    patientsList = new QListWidget();
+    layout->addWidget(searchBarPatient);
+    layout->addWidget(patientsList);
+    multiWidget->setLayout(layout);
+    dock->setWidget(multiWidget);
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
     dock = new QDockWidget(tr("Action"), this);
@@ -63,15 +71,14 @@ void MainWindow::createDockWindows()
     dock->setWidget(widget1);
     HBL->addWidget(button_ordonnance);
     HBL->addWidget(button_blister);
-
     widget1->setLayout(HBL);
-
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
     connect(groupeList, &QListWidget::currentRowChanged, this, &MainWindow::changeListPatients);
     connect(secteurList, &QListWidget::currentRowChanged, this, &MainWindow::changeListPatients);
     connect(groupeList, &QListWidget::currentRowChanged, this, &MainWindow::changeListSecteur);
     connect(patientsList, &QListWidget::currentRowChanged, this, &MainWindow::getSelectedPatient);
+    connect(searchBarPatient, SIGNAL(textEdited(const QString &)), this, SLOT(searchForPatient(const QString &)));
     connect(button_actualiser, &QPushButton::clicked, this, &MainWindow::actualiser);
     connect(button_ordonnance, &QPushButton::clicked, this, &MainWindow::createOrdo);
 }
@@ -88,12 +95,32 @@ void MainWindow::changeListPatients()
     patientsList->addItems(tabListePatient->value(groupeList->currentRow()).value(secteurList->currentRow()));
 }
 
+void MainWindow::searchForPatient(const QString &text)
+{
+    patientsList->clear();
+    QStringList sl = getStrFile(getFilename(1)).split("\n");
+    QStringList *slNom = new QStringList;
+    for(int i = 1; i < sl.length(); i++) {
+        slNom->append(sl.value(i).split(";").value(1) + " " + sl.value(i).split(";").value(2));
+    }
+    patientsList->addItems(*slNom);
+    QList<QListWidgetItem *> *a = new QList<QListWidgetItem*>;
+    *a = patientsList->findItems(text, Qt::MatchContains);
+    QStringList *slSearch = new QStringList;
+    for (int i = 0; i < a->length() ; i++) {
+        slSearch->append(a->value(i)->text());
+    }
+    patientsList->clear();
+    patientsList->addItems(*slSearch);
+}
+
 QStringList MainWindow::getSelectedPatient()
 {
-    QString str = tabListePatient->value(groupeList->currentRow()).value(secteurList->currentRow()).value(patientsList->currentRow());
+    if (patientsList->currentItem() == nullptr)
+        return (QString("NULL;NULL;NULL;NULL;NULL;NULL;NULL;NULL;NULL;NULL;NULL;NULL;").split(";"));
+    QString str = patientsList->currentItem()->text();
     QStringList strlist = getStrFile(filenamePatients).split("\n");
-    for (int i = 0; i < strlist.length() - 1; i++)
-    {
+    for (int i = 0; i < strlist.length() - 1; i++) {
         if (strlist.value(i).split(";").value(1) == str.split(" ").value(0))
             return (strlist.value(i).split(";"));
     }
@@ -107,36 +134,6 @@ void MainWindow::actualiser()
     groupeList->addItems(*listeGroupe);
     patientsList->clear();
     patientsList->addItems(tabListePatient->value(groupeList->currentRow()).value(secteurList->currentRow()));
-}
-
-void MainWindow::save()
-{
-/*    QMimeDatabase mimeDatabase;
-    QString fileName = QFileDialog::getSaveFileName(this,
-                        tr("Choose a file name"), ".",
-                        mimeDatabase.mimeTypeForName("text/html").filterString());
-    if (fileName.isEmpty())
-        return;
-    QFile file(fileName);
-    if (!file.open(QFile::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Dock Widgets"),
-                             tr("Cannot write file %1:\n%2.")
-                             .arg(QDir::toNativeSeparators(fileName), file.errorString()));
-        return;
-    }
-
-    QTextStream out(&file);
-    QGuiApplication::setOverrideCursor(Qt::WaitCursor);
-    out << textEdit->toHtml();
-    QGuiApplication::restoreOverrideCursor();
-
-    statusBar()->showMessage(tr("Saved '%1'").arg(fileName), 2000);*/
-}
-
-void MainWindow::undo()
-{
-/*    QTextDocument *document = textEdit->document();
-    document->undo();*/
 }
 
 void MainWindow::createMenus()
@@ -153,8 +150,6 @@ void MainWindow::createMenus()
 
     QMenu *menuEdition = menuBar()->addMenu("&Edition");
     Q_UNUSED(menuEdition)
-/*    QAction *actionGras = menuEdition->addAction("Gras");
-    actionGras->setCheckable(true);*/
 
     QMenu *menuAffichage = menuBar()->addMenu("&Affichage");
     QAction *actionFullscreen = menuAffichage->addAction("Plein écran");
@@ -165,6 +160,12 @@ void MainWindow::createMenus()
     QAction *actionVoirSecteur = menuDonnees->addAction("Secteurs");
     QAction *actionVoirPatient = menuDonnees->addAction("Patients");
     QAction *actionVoirProduit = menuDonnees->addAction("Produits");
+    QAction *actionVoirMedecin = menuDonnees->addAction("Médecins");
+    _viewGroupe = new WindowViewGroupe(this);
+    _viewSecteur = new WindowViewSecteur(this);
+    _viewPatient = new WindowViewPatient(this);
+    _viewProduit = new WindowViewProduit(this);
+    _viewMedecin = new WindowViewMedecin(this);
 
     actionQuitter->setShortcut(QKeySequence("Ctrl+Q"));
     actionFullscreen->setShortcut(QKeySequence("F11"));
@@ -178,6 +179,7 @@ void MainWindow::createMenus()
     connect(actionVoirSecteur, SIGNAL(triggered()), this, SLOT(voirSecteur()));
     connect(actionVoirPatient, SIGNAL(triggered()), this, SLOT(voirPatient()));
     connect(actionVoirProduit, SIGNAL(triggered()), this, SLOT(voirProduit()));
+    connect(actionVoirMedecin, SIGNAL(triggered()), this, SLOT(voirMedecin()));
 }
 
 void MainWindow::toggleFullscreen(bool b)
@@ -290,6 +292,8 @@ QString MainWindow::getFilename(int n)
             return filenamePatients;
         case 2:
             return filenameProduits;
+        case 3:
+            return filenameMedecin;
         default:
             return nullptr;
     }
@@ -312,26 +316,27 @@ QVector<QVector<QStringList>> *MainWindow::getTabListePatient()
 
 void MainWindow::voirGroupe()
 {
-    WindowViewGroupe *viewGroupe = new WindowViewGroupe(this);
-    viewGroupe->show();
+    _viewGroupe->show();
 }
 
 void MainWindow::voirSecteur()
 {
-    WindowViewSecteur *viewSecteur = new WindowViewSecteur(this);
-    viewSecteur->show();
+    _viewSecteur->show();
 }
 
 void MainWindow::voirPatient()
 {
-    WindowViewPatient *viewPatient = new WindowViewPatient(this);
-    viewPatient->show();
+    _viewPatient->show();
 }
 
 void MainWindow::voirProduit()
 {
-    WindowViewProduit *viewProduit = new WindowViewProduit(this);
-    viewProduit->show();
+    _viewProduit->show();
+}
+
+void MainWindow::voirMedecin()
+{
+    _viewMedecin->show();
 }
 
 void MainWindow::createOrdo()

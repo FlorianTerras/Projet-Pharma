@@ -1,10 +1,10 @@
-#include "windowviewpatient.h"
+#include "windowviewmedecin.h"
 
-WindowViewPatient::WindowViewPatient(MainWindow *parent, int numFile)
+WindowViewMedecin::WindowViewMedecin(MainWindow *parent)
 {
     parent_t = parent;
     this->setParent(parent);
-    _numFile = numFile;
+    _numFile = 3;
     selectedTableRow = - 1;
     QVBoxLayout *VBL = new QVBoxLayout();
     view = new QTableView(this);
@@ -35,7 +35,7 @@ WindowViewPatient::WindowViewPatient(MainWindow *parent, int numFile)
     connect(button_supprimer, SIGNAL(clicked()), this, SLOT(supprPatient()));
 }
 
-void WindowViewPatient::addPatient()
+void WindowViewMedecin::addPatient()
 {
     QWidget *window = new QWidget(this, Qt::Dialog);
     window->setWindowTitle("Ajouter un patient");
@@ -44,34 +44,30 @@ void WindowViewPatient::addPatient()
     VBL->addLayout(QFL);
     QLineEdit *nom = new QLineEdit;
     QLineEdit *prenom = new QLineEdit;
-    QLineEdit *DateN = new QLineEdit;
-    QLineEdit *insee = new QLineEdit;
-    QLineEdit *sexe = new QLineEdit;
-    QLineEdit *DateD = new QLineEdit;
-    QLineEdit *nomJF = new QLineEdit;
+    QLineEdit *spec = new QLineEdit;
+    QLineEdit *AM = new QLineEdit;
+    QLineEdit *RPPS = new QLineEdit;
     QLineEdit *rue1 = new QLineEdit;
     QLineEdit *rue2 = new QLineEdit;
     QLineEdit *codeP = new QLineEdit;
     QLineEdit *ville = new QLineEdit;
+    QLineEdit *tel = new QLineEdit;
+    QLineEdit *mail = new QLineEdit;
+    QLineEdit *fax = new QLineEdit;
+
     QFL->addRow("Nom :", nom);
     QFL->addRow("Prénom :", prenom);
-    QFL->addRow("Date de naissance :", DateN);
-    QFL->addRow("N° INSEE", insee);
-    QFL->addRow("Sexe (M/F) :", sexe);
-    QFL->addRow("Date de décès :", DateD);
-    QFL->addRow("Nom de jeune fille", nomJF);
+    QFL->addRow("Spécialité :", spec);
+    QFL->addRow("N° d'AM", AM);
+    QFL->addRow("RPPS :", RPPS);
     QFL->addRow("Rue 1 :", rue1);
     QFL->addRow("Rue 2 :", rue2);
     QFL->addRow("Code Postal :", codeP);
     QFL->addRow("Ville :", ville);
+    QFL->addRow("Téléphone :", tel);
+    QFL->addRow("Mail :", mail);
+    QFL->addRow("Fax :", fax);
 
-    QComboBox *cboxGroupe = new QComboBox;
-    cboxGroupe->addItems(*parent_t->getListeGroupe());
-    QFL->addRow("Groupe :", cboxGroupe);
-
-    cboxSecteur = new QComboBox;
-    changeCboxSecteur();
-    QFL->addRow("Secteur :", cboxSecteur);
     QHBoxLayout *HBL = new QHBoxLayout;
     VBL->addSpacing(20);
     VBL->addLayout(HBL);
@@ -83,25 +79,20 @@ void WindowViewPatient::addPatient()
     HBL->addWidget(buttonOk);
     HBL->setAlignment(Qt::AlignBottom | Qt::AlignRight);
     window->show();
-    cboxIndex = 0;
-    cboxIndex2 = 0;
-    changeCboxSecteur();
     window->resize(600, 550);
 
-    connect(cboxGroupe, SIGNAL(currentIndexChanged(int)), this, SLOT(saveCboxIndex(int)));
-    connect(cboxSecteur, SIGNAL(currentIndexChanged(int)), this, SLOT(saveCboxIndex2(int)));
-    connect(cboxGroupe, SIGNAL(currentIndexChanged(int)), this, SLOT(changeCboxSecteur()));
     connect(nom, SIGNAL(textChanged(QString)), this, SLOT(saveTextNom(QString)));
     connect(prenom, SIGNAL(textChanged(QString)), this, SLOT(saveTextPrenom(QString)));
-    connect(insee, SIGNAL(textChanged(QString)), this, SLOT(saveTextInsee(QString)));
-    connect(sexe, SIGNAL(textChanged(QString)), this, SLOT(saveTextSexe(QString)));
-    connect(nomJF, SIGNAL(textChanged(QString)), this, SLOT(saveTextNomJF(QString)));
-    connect(DateN, SIGNAL(textChanged(QString)), this, SLOT(saveTextDateN(QString)));
-    connect(DateD, SIGNAL(textChanged(QString)), this, SLOT(saveTextDateD(QString)));
+    connect(spec, SIGNAL(textChanged(QString)), this, SLOT(saveTextSpec(QString)));
+    connect(AM, SIGNAL(textChanged(QString)), this, SLOT(saveTextAM(QString)));
+    connect(RPPS, SIGNAL(textChanged(QString)), this, SLOT(saveTextRPPS(QString)));
     connect(rue1, SIGNAL(textChanged(QString)), this, SLOT(saveTextRue1(QString)));
     connect(rue2, SIGNAL(textChanged(QString)), this, SLOT(saveTextRue2(QString)));
     connect(codeP, SIGNAL(textChanged(QString)), this, SLOT(saveTextCodeP(QString)));
     connect(ville, SIGNAL(textChanged(QString)), this, SLOT(saveTextVille(QString)));
+    connect(tel, SIGNAL(textChanged(QString)), this, SLOT(saveTextTel(QString)));
+    connect(mail, SIGNAL(textChanged(QString)), this, SLOT(saveTextMail(QString)));
+    connect(fax, SIGNAL(textChanged(QString)), this, SLOT(saveTextFax(QString)));
     connect(buttonOk, SIGNAL(clicked()), this, SLOT(addPatientOK()));
     connect(buttonOk, &QPushButton::clicked, window, &QWidget::close);
     connect(buttonOk, SIGNAL(clicked()), parent_t, SLOT(actualiser()));
@@ -109,23 +100,23 @@ void WindowViewPatient::addPatient()
     connect(buttonAnnuler, &QPushButton::clicked, window, &QWidget::close);
 }
 
-void WindowViewPatient::modifyPatient()
+void WindowViewMedecin::modifyPatient()
 {
     QWidget *window = new QWidget(this, Qt::Dialog);
     QVBoxLayout *VBL = new QVBoxLayout(window);
     QFormLayout *QFL = new QFormLayout;
     QLineEdit *nom = new QLineEdit;
     QLineEdit *prenom = new QLineEdit;
-    QLineEdit *DateN = new QLineEdit;
-    QLineEdit *insee = new QLineEdit;
-    QLineEdit *sexe = new QLineEdit;
-    QLineEdit *DateD = new QLineEdit;
-    QLineEdit *nomJF = new QLineEdit;
+    QLineEdit *spec = new QLineEdit;
+    QLineEdit *AM = new QLineEdit;
+    QLineEdit *RPPS = new QLineEdit;
     QLineEdit *rue1 = new QLineEdit;
     QLineEdit *rue2 = new QLineEdit;
     QLineEdit *codeP = new QLineEdit;
     QLineEdit *ville = new QLineEdit;
-    QComboBox *cboxGroupe = new QComboBox;
+    QLineEdit *tel = new QLineEdit;
+    QLineEdit *mail = new QLineEdit;
+    QLineEdit *fax = new QLineEdit;
     QHBoxLayout *HBL = new QHBoxLayout;
     QPushButton *buttonOk = new QPushButton("OK");
     QPushButton *buttonAnnuler = new QPushButton("Annuler");
@@ -137,33 +128,26 @@ void WindowViewPatient::modifyPatient()
         QFL->addRow("Nom :",nom);
         prenom->setText(strPrenom);
         QFL->addRow("Prénom :", prenom);
-        DateN->setText(strDateN);
-        QFL->addRow("Date de naissance :", DateN);
-        insee->setText(strInsee);
-        QFL->addRow("N° Insee :", insee);
-        sexe->setText(strSexe);
-        QFL->addRow("Sexe :", sexe);
-        DateD->setText(strDateD);
-        QFL->addRow("Date de décès :", DateD);
-        nomJF->setText(strNomJF);
-        QFL->addRow("Nom de Jeune F. :", nomJF);
+        spec->setText(strSpec);
+        QFL->addRow("Spécialité:", spec);
+        AM->setText(strAM);
+        QFL->addRow("N° d'AM :", AM);
+        RPPS->setText(strRPPS);
+        QFL->addRow("RPPS :", RPPS);
         rue1->setText(strRue1);
         QFL->addRow("Rue 1 :", rue1);
         rue2->setText(strRue2);
         QFL->addRow("Rue 2 :", rue2);
         codeP->setText(strCodeP);
-        QFL->addRow("Code Postal :", codeP);
+        QFL->addRow("Code postal :", codeP);
         ville->setText(strVille);
         QFL->addRow("Ville :", ville);
-        cboxIndex = getIndex(parent_t->getStrFile(parent_t->getFilename(_numFile)).split("\n").value(selectedTableRow+1).split(";").value(11));
-        cboxIndex2 = getIndex2(parent_t->getStrFile(parent_t->getFilename(_numFile)).split("\n").value(selectedTableRow+1).split(";").value(12));
-        cboxGroupe->addItems(*parent_t->getListeGroupe());
-        QFL->addRow("Groupe :", cboxGroupe);
-        cboxSecteur = new QComboBox;
-        changeCboxSecteur();
-        cboxGroupe->setCurrentIndex(cboxIndex);
-        QFL->addRow("Secteur :", cboxSecteur);
-        cboxSecteur->setCurrentIndex(cboxIndex2);
+        tel->setText(strTel);
+        QFL->addRow("Téléphone :", tel);
+        mail->setText(strMail);
+        QFL->addRow("Mail :", mail);
+        fax->setText(strFax);
+        QFL->addRow("Fax :", fax);
         VBL->addLayout(QFL);
         VBL->addSpacing(20);
         VBL->addLayout(HBL);
@@ -178,20 +162,18 @@ void WindowViewPatient::modifyPatient()
         QMessageBox::warning(window, "Erreur", "Veuillez selectionner un patient");
         return;
     }
-    connect(cboxGroupe, SIGNAL(currentIndexChanged(int)), this, SLOT(saveCboxIndex(int)));
-    connect(cboxSecteur, SIGNAL(currentIndexChanged(int)), this, SLOT(saveCboxIndex2(int)));
     connect(nom, SIGNAL(textChanged(QString)), this, SLOT(saveTextNom(QString)));
     connect(prenom, SIGNAL(textChanged(QString)), this, SLOT(saveTextPrenom(QString)));
-    connect(insee, SIGNAL(textChanged(QString)), this, SLOT(saveTextInsee(QString)));
-    connect(sexe, SIGNAL(textChanged(QString)), this, SLOT(saveTextSexe(QString)));
-    connect(DateN, SIGNAL(textChanged(QString)), this, SLOT(saveTextDateN(QString)));
-    connect(DateD, SIGNAL(textChanged(QString)), this, SLOT(saveTextDateD(QString)));
-    connect(nomJF, SIGNAL(textChanged(QString)), this, SLOT(saveTextNomJF(QString)));
+    connect(spec, SIGNAL(textChanged(QString)), this, SLOT(saveTextSpec(QString)));
+    connect(AM, SIGNAL(textChanged(QString)), this, SLOT(saveTextAM(QString)));
+    connect(RPPS, SIGNAL(textChanged(QString)), this, SLOT(saveTextRPPS(QString)));
     connect(rue1, SIGNAL(textChanged(QString)), this, SLOT(saveTextRue1(QString)));
     connect(rue2, SIGNAL(textChanged(QString)), this, SLOT(saveTextRue2(QString)));
     connect(codeP, SIGNAL(textChanged(QString)), this, SLOT(saveTextCodeP(QString)));
     connect(ville, SIGNAL(textChanged(QString)), this, SLOT(saveTextVille(QString)));
-    connect(cboxGroupe, SIGNAL(currentIndexChanged(int)), this, SLOT(changeCboxSecteur()));
+    connect(tel, SIGNAL(textChanged(QString)), this, SLOT(saveTextTel(QString)));
+    connect(mail, SIGNAL(textChanged(QString)), this, SLOT(saveTextMail(QString)));
+    connect(fax, SIGNAL(textChanged(QString)), this, SLOT(saveTextFax(QString)));
     connect(buttonOk, SIGNAL(clicked()), this, SLOT(modifyPatientOK()));
     connect(buttonOk, SIGNAL(clicked()), parent_t, SLOT(actualiser()));
     connect(buttonOk, SIGNAL(clicked()), this, SLOT(actualiser()));
@@ -199,14 +181,14 @@ void WindowViewPatient::modifyPatient()
     connect(buttonAnnuler, &QPushButton::clicked, window, &QWidget::close);
 }
 
-void WindowViewPatient::supprPatient()
+void WindowViewMedecin::supprPatient()
 {
     QMessageBox msgBox(this);
     if (selectedTableRow >= 0)
     {
-        msgBox.setText("Ce patient va être supprimé : "
-                       + parent_t->getStrFile(parent_t->getFilename(_numFile)).split("\n").value(selectedTableRow+1).split(";").value(1)
-                       + " " + parent_t->getStrFile(parent_t->getFilename(_numFile)).split("\n").value(selectedTableRow+1).split(";").value(2));
+        msgBox.setText("Ce médecin va être supprimé : "
+                       + parent_t->getStrFile(parent_t->getFilename(_numFile)).split("\n").value(selectedTableRow+1).split(";").value(0)
+                       + " " + parent_t->getStrFile(parent_t->getFilename(_numFile)).split("\n").value(selectedTableRow+1).split(";").value(1));
         msgBox.setInformativeText("Etes vous sûr ?");
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::Yes);
@@ -225,31 +207,27 @@ void WindowViewPatient::supprPatient()
                 return;
         }
     } else {
-        QMessageBox::warning(this, "Erreur", "Veuillez selectionner un patient");
+        QMessageBox::warning(this, "Erreur", "Veuillez selectionner un médecin");
         return;
     }
 }
 
-void WindowViewPatient::addPatientOK()
+void WindowViewMedecin::addPatientOK()
 {
     QString str = parent_t->getStrFile(parent_t->getFilename(_numFile));
     if (!strNom.isEmpty() && !strPrenom.isEmpty()) {
-        str.append(strDateN +";");// Date de naissance
-        str.append(strNom + ";"); // Nom
-        str.append(strPrenom + ";"); // Prénom
-        str.append(strInsee + ";");//N° INSEE
-        str.append(strSexe + ";");//Sexe
-        str.append(strDateD + ";");//Date Deces
-        str.append(strNomJF + ";");//Nom de jeune fille
-        str.append(strRue1 + ";");//Rue1
-        str.append(strRue2 + ";");//Rue2
-        str.append(strCodeP + ";");//Code Postal
-        str.append(strVille + ";");//Ville
-        str.append (parent_t->getListeGroupe()->value(cboxIndex) + ";"); //Groupe
-        str.append(parent_t->getTabListeSecteur()->value(cboxIndex).value(cboxIndex2) + ";"); //Secteur
-        str.append(";");//Etat
-        str.append(";");//Photo
-        str.append(";");//Broyage
+        str.append(strNom +";");
+        str.append(strPrenom + ";");
+        str.append(strSpec + ";");
+        str.append(strAM + ";");
+        str.append(strRPPS + ";");
+        str.append(strRue1 + ";");
+        str.append(strRue2 + ";");
+        str.append(strCodeP + ";");
+        str.append(strVille + ";");
+        str.append(strTel + ";");
+        str.append(strMail + ";");
+        str.append(strFax + ";");
         str.append("\n");
         QFile file(parent_t->getFilename(_numFile));
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -260,41 +238,40 @@ void WindowViewPatient::addPatientOK()
         out << str;
         strNom.clear();
         strPrenom.clear();
-        strInsee.clear();
-        strSexe.clear();
-        strNomJF.clear();
+        strSpec.clear();
+        strAM.clear();
+        strRPPS.clear();
         strRue1.clear();
         strRue2.clear();
         strCodeP.clear();
         strVille.clear();
-        cboxIndex = 0;
-        cboxIndex2 = 0;
+        strTel.clear();
+        strMail.clear();
+        strFax.clear();
     } else {
         QMessageBox::warning(this, "Erreur", "Veuillez indiquer un nom");
     }
 }
 
-void WindowViewPatient::modifyPatientOK()
+void WindowViewMedecin::modifyPatientOK()
 {
     QString str = parent_t->getStrFile(parent_t->getFilename(_numFile));
 
     if (!strNom.isEmpty()) {
         QStringList strList = str.split("\n", QString::SkipEmptyParts);
         QString newStr;
-        newStr.append(strDateN + ";");
-        newStr.append(strNom + ";");
+        newStr.append(strNom +";");
         newStr.append(strPrenom + ";");
-        newStr.append(strInsee + ";");
-        newStr.append(strSexe + ";");
-        newStr.append(strDateD + ";");
-        newStr.append(strNomJF + ";");
+        newStr.append(strSpec + ";");
+        newStr.append(strAM + ";");
+        newStr.append(strRPPS + ";");
         newStr.append(strRue1 + ";");
         newStr.append(strRue2 + ";");
         newStr.append(strCodeP + ";");
         newStr.append(strVille + ";");
-        newStr.append(parent_t->getListeGroupe()->value(cboxIndex) + ";");
-        newStr.append(parent_t->getTabListeSecteur()->value(cboxIndex)[cboxIndex2] + ";");
-        newStr.append(";;;");
+        newStr.append(strTel + ";");
+        newStr.append(strMail + ";");
+        newStr.append(strFax + ";");
         strList.replace(selectedTableRow + 1, newStr);
         newStr.clear();
         for (int i = 0; i < strList.length(); i++) {
@@ -309,14 +286,12 @@ void WindowViewPatient::modifyPatientOK()
         }
         QTextStream out(&file);
         out << newStr;
-        cboxIndex = 0;
-        cboxIndex2 = 0;
     } else {
         QMessageBox::warning(this, "Erreur", "Veuillez indiquer un nom");
     }
 }
 
-void WindowViewPatient::supprPatientOK()
+void WindowViewMedecin::supprPatientOK()
 {
     QString str = parent_t->getStrFile(parent_t->getFilename(_numFile));
     QStringList strList = str.split("\n", QString::SkipEmptyParts);
@@ -336,135 +311,97 @@ void WindowViewPatient::supprPatientOK()
     }
     QTextStream out(&file);
     out << newstr;
-    cboxIndex = 0;
     selectedTableRow = 0;
     parent_t->actualiser();
 }
 
-void WindowViewPatient::saveSelectedRow(const QModelIndex &index)
+void WindowViewMedecin::saveSelectedRow(const QModelIndex &index)
 {
     selectedTableRow = index.row();
 }
 
-void WindowViewPatient::saveCboxIndex(int currentRow)
-{
-    cboxIndex = currentRow;
-}
-
-void WindowViewPatient::saveCboxIndex2(int currentRow)
-{
-    cboxIndex2 = currentRow;
-}
-
-void WindowViewPatient::changeCboxSecteur()
-{
-    cboxSecteur->clear();
-    cboxSecteur->addItems(parent_t->getTabListeSecteur()->value(cboxIndex));
-}
-
-void WindowViewPatient::saveTextNom(QString nom)
+void WindowViewMedecin::saveTextNom(QString nom)
 {
     strNom = nom;
 }
 
-void WindowViewPatient::saveTextPrenom(QString str)
+void WindowViewMedecin::saveTextPrenom(QString str)
 {
     strPrenom = str;
 }
 
-void WindowViewPatient::saveTextInsee(QString str)
+void WindowViewMedecin::saveTextSpec(QString str)
 {
-    strInsee = str;
+    strSpec = str;
 }
 
-void WindowViewPatient::saveTextSexe(QString str)
+void WindowViewMedecin::saveTextAM(QString str)
 {
-    strSexe = str;
+    strAM = str;
 }
 
-void WindowViewPatient::saveTextNomJF(QString str)
+void WindowViewMedecin::saveTextRPPS(QString str)
 {
-    strNomJF = str;
+    strRPPS = str;
 }
 
-void WindowViewPatient::saveTextRue1(QString str)
+void WindowViewMedecin::saveTextRue1(QString str)
 {
     strRue1 = str;
 }
 
-void WindowViewPatient::saveTextRue2(QString str)
+void WindowViewMedecin::saveTextRue2(QString str)
 {
     strRue2 = str;
 }
 
-void WindowViewPatient::saveTextCodeP(QString str)
+void WindowViewMedecin::saveTextCodeP(QString str)
 {
     strCodeP = str;
 }
 
-void WindowViewPatient::saveTextVille(QString str)
+void WindowViewMedecin::saveTextVille(QString str)
 {
     strVille = str;
 }
 
-void WindowViewPatient::saveTextDateN(QString str)
+void WindowViewMedecin::saveTextTel(QString str)
 {
-    strDateN = str;
+    strTel = str;
 }
 
-void WindowViewPatient::saveTextDateD(QString str)
+void WindowViewMedecin::saveTextMail(QString str)
 {
-    strDateD = str;
+    strMail = str;
 }
 
-void WindowViewPatient::saveAllInfosFromLine(int nbline)
+void WindowViewMedecin::saveTextFax(QString str)
+{
+    strFax = str;
+}
+
+void WindowViewMedecin::saveAllInfosFromLine(int nbline)
 {
     QString str = parent_t->getStrFile(parent_t->getFilename(_numFile));
     QStringList strList = str.split("\n", QString::SkipEmptyParts).value(nbline).split(";");
 
-    strDateN = strList[0];
-    strNom = strList[1];
-    strPrenom = strList[2];
-    strInsee = strList[3];
-    strSexe = strList[4];
-    strDateD = strList[5];
-    strNomJF = strList[6];
-    strRue1 = strList[7];
-    strRue2 = strList[8];
-    strCodeP = strList[9];
-    strVille = strList[10];
+    strNom = strList[0];
+    strPrenom = strList[1];
+    strSpec = strList[2];
+    strAM = strList[3];
+    strRPPS = strList[4];
+    strRue1 = strList[5];
+    strRue2 = strList[6];
+    strCodeP = strList[7];
+    strVille = strList[8];
+    strTel = strList[9];
+    strMail = strList[10];
+    strFax = strList[11];
 }
 
-void WindowViewPatient::actualiser()
+void WindowViewMedecin::actualiser()
 {
     model = new TableModelPatient();
     model->populateData(parent_t->getStrFile(parent_t->getFilename(_numFile)));
     view->setModel(model);
-}
-
-int WindowViewPatient::getIndex(QString str)
-{
-    int i;
-    for (i = 0; i < parent_t->getListeGroupe()->length(); i++) {
-        if (parent_t->getListeGroupe()->value(i) == str)
-            return (i);
-    }
-    return (0);
-}
-
-int WindowViewPatient::getIndex2(QString str)
-{
-    int j = 0;
-    for (int i = 0; i <= parent_t->getListeGroupe()->length(); i++) {
-        for(j = 0; j <= parent_t->getTabListeSecteur()->value(i).length(); j++) {
-            if (parent_t->getTabListeSecteur()->value(i).value(j) == str)
-                return (j);
-        }
-    }
-    return (j);
-}
-
-int WindowViewPatient::getSelectedTableRow()
-{
-    return selectedTableRow;
 }

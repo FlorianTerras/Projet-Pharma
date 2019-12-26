@@ -1,5 +1,6 @@
 #include "centralwidgetordonnance.h"
 #include "lineeditproduitdelegate.h"
+#include "ComboBoxFrequenceDelegate.h"
 
 CentralWidgetOrdonnance::CentralWidgetOrdonnance(MainWindow *parent)
 {
@@ -7,6 +8,7 @@ CentralWidgetOrdonnance::CentralWidgetOrdonnance(MainWindow *parent)
     this->setParent(parent);
     listeProduit = new QStringList;
     listeCodePrdt = new QStringList;
+    listeNomMedecin = new QStringList;
     renouvellement = 0;
     fillListeProduit();
     QGridLayout *VBL = new QGridLayout;
@@ -83,6 +85,9 @@ QWidget *CentralWidgetOrdonnance::createInfoWidget()
     label = new QLabel("Renouvellable", infoOrdo);
     GL->addWidget(label, 3, 3, 1, 2);
     QLineEdit *lineEditNomMedecin = new QLineEdit;
+    QCompleter *completer = new QCompleter(*listeNomMedecin, lineEditNomMedecin);
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+    lineEditNomMedecin->setCompleter(completer);
     GL->addWidget(lineEditNomMedecin, 2, 0);
     QDateEdit *dateEdit = new QDateEdit(*datePrescr);//date presc
     dateEdit->setDisplayFormat("dd/MM/yyyy");
@@ -139,22 +144,10 @@ QWidget *CentralWidgetOrdonnance::createListWidget()
         tableView->setColumnWidth(i, tableView->columnWidth(i) + 30);
     tableView->setColumnWidth(1, tableView->columnWidth(1) + 180);
     tableView->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::AnyKeyPressed);
-    tableView->setItemDelegateForColumn(1,  new LineEditProduitDelegate(this, tableView));
-    QVBoxLayout *VBL = new QVBoxLayout;
-    layout->addLayout(VBL);
-    QPushButton *buttonAdd = new QPushButton("+");
-    QPushButton *buttonSuppr = new QPushButton("-");
-    buttonAdd->setAutoFillBackground(true);
-    buttonAdd->setPalette(QPalette(Qt::blue));
-    buttonSuppr->setAutoFillBackground(true);
-    buttonSuppr->setPalette(QPalette(Qt::red));
-    VBL->addWidget(buttonAdd);
-    VBL->addWidget(buttonSuppr);
-    VBL->setAlignment(Qt::AlignTop);
+    tableView->setItemDelegateForColumn(1, new LineEditProduitDelegate(this, tableView));
+    tableView->setItemDelegateForColumn(8, new ComboBoxFrequenceDelegate(this, tableView));
 
     connect(modelO, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)), this, SLOT(actualiserList(const QModelIndex &)));
-    connect(buttonAdd, SIGNAL(clicked()), this, SLOT(addProduit()));
-    connect(buttonSuppr, SIGNAL(clicked()), modelO, SLOT(getData()));
     return list;
 }
 
@@ -195,8 +188,9 @@ QWidget *CentralWidgetOrdonnance::createHistoryWidget()
     m->setSourceModel(modelH);
     tableView->setModel(m);
     tableView->setSortingEnabled(true);
-    tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    tableView->setFocusPolicy(Qt::NoFocus);
+    tableView->sortByColumn(1, Qt::DescendingOrder);
+/*    tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    tableView->setFocusPolicy(Qt::NoFocus);*/
     tableView->setSelectionMode(QAbstractItemView::NoSelection);
     tableView->resizeColumnsToContents();
 
@@ -216,11 +210,10 @@ void CentralWidgetOrdonnance::actualiserList(const QModelIndex &index)
         QString data = index.data().toString();
         QStringList splitSplit = mloSplit.value(index.row() + 1).split(";");
         for(int i = 0; i < listeProduit->length(); i++)
-            if (listeProduit->value(i) == data) {
+            if (listeProduit->value(i) == data && !data.isEmpty()) {
                 splitSplit.replace(0, listeCodePrdt->value(i));
                 QString lkj;
-                for (int j = 0; j < splitSplit.length() - 1; j++)
-                {
+                for (int j = 0; j < splitSplit.length() - 1; j++) {
                     if (j >= 2 && j <= 7 && splitSplit.value(j) == "")
                         lkj.append("0");
                     else if (j == 9 && splitSplit.value(j) == "") {
@@ -232,8 +225,7 @@ void CentralWidgetOrdonnance::actualiserList(const QModelIndex &index)
                 }
                 mloSplit.replace(index.row() + 1, lkj);
                 mlo.clear();
-                for (int j = 0; j < mloSplit.length() && !mloSplit.value(j).isEmpty(); j++)
-                {
+                for (int j = 0; j < mloSplit.length() && !mloSplit.value(j).isEmpty(); j++) {
                     mlo.append(mloSplit.value(j));
                     mlo.append("\n");
                 }
@@ -243,11 +235,10 @@ void CentralWidgetOrdonnance::actualiserList(const QModelIndex &index)
         QString data = index.data().toString();
         QStringList splitSplit = mloSplit.value(index.row() + 1).split(";");
         for(int i = 0; i < listeCodePrdt->length(); i++) {
-            if (listeCodePrdt->value(i) == data) {
+            if (listeCodePrdt->value(i) == data && !data.isEmpty()) {
                 splitSplit.replace(1, listeProduit->value(i));
                 QString lkj;
-                for (int j = 0; j < splitSplit.length() - 1; j++)
-                {
+                for (int j = 0; j < splitSplit.length() - 1; j++) {
                     if (j >= 2 && j <= 7 && splitSplit.value(j) == "")
                         lkj.append("0");
                     else if (j == 9 && splitSplit.value(j) == "")
@@ -287,84 +278,28 @@ void CentralWidgetOrdonnance::actualiserList(const QModelIndex &index)
     *tmpString = mlo;
 }
 
-void CentralWidgetOrdonnance::addProduit()
-{
-    QWidget *window = new QWidget(this, Qt::Dialog);
-    window->setWindowTitle("Ajouter un produit");
-    QVBoxLayout *VBL = new QVBoxLayout(window);
-    QGridLayout *QGL = new QGridLayout;
-    VBL->addLayout(QGL);
-    QGL->setAlignment(Qt::AlignTop);
-    QLineEdit *code = new QLineEdit;
-    QLineEdit *nomProduit = new QLineEdit;
-    QLineEdit *matin = new QLineEdit;
-    QLineEdit *midi = new QLineEdit;
-    QLineEdit *soir = new QLineEdit;
-    QLineEdit *heure1 = new QLineEdit;
-    QLineEdit *heure2 = new QLineEdit;
-    QLineEdit *duree = new QLineEdit;
-    QLabel *label = new QLabel("Code :");
-    QGL->addWidget(label, 0, 0);
-    QGL->addWidget(code, 1, 0, 1, 3);
-    label = new QLabel("Produit :");
-    QGL->addWidget(label, 2, 0);
-    QGL->addWidget(nomProduit, 3, 0, 1, 3);
-    nomProduit->setFocus();
-    fillListeProduit();
-    QCompleter *completer = new QCompleter(*listeProduit, this);
-    completer->setCaseSensitivity(Qt::CaseInsensitive);
-    nomProduit->setCompleter(completer);
-    label = new QLabel("Matin :");
-    QGL->addWidget(label, 4, 0);
-    QGL->addWidget(matin, 5, 0);
-    label = new QLabel("Midi :");
-    QGL->addWidget(label, 4, 1);
-    QGL->addWidget(midi, 5, 1);
-    label = new QLabel("Soir :");
-    QGL->addWidget(label, 4, 2);
-    QGL->addWidget(soir, 5, 2);
-    label = new QLabel("Heure 1 :");
-    QGL->addWidget(label, 4, 3);
-    QGL->addWidget(heure1, 5, 3);
-    label = new QLabel("Heure 2 :");
-    QGL->addWidget(label, 4, 4);
-    QGL->addWidget(heure2, 5, 4);
-    label = new QLabel("Durée (jours) :");
-    QGL->addWidget(label, 6, 0);
-    QGL->addWidget(duree, 7, 0);
-    QHBoxLayout *HBL = new QHBoxLayout;
-    VBL->addSpacing(20);
-    VBL->addLayout(HBL);
-    QPushButton *buttonOk = new QPushButton("OK");
-    QPushButton *buttonAnnuler = new QPushButton("Annuler");
-    buttonOk->setFixedSize(120, 30);
-    buttonAnnuler->setFixedSize(120, 30);
-    HBL->addWidget(buttonAnnuler);
-    HBL->addWidget(buttonOk);
-    HBL->setAlignment(Qt::AlignBottom | Qt::AlignRight);
-    window->show();
-    window->resize(600, 550);
-
-    connect(buttonAnnuler, &QPushButton::clicked, window, &QWidget::close);
-}
-
 void CentralWidgetOrdonnance::fillListeProduit()
 {
     QStringList newlist;
     QStringList strlist = parent_t->getStrFile(parent_t->getFilename(2)).split("\n");
-    for (int i = 1; i < strlist.length(); i++)
-    {
+    for (int i = 1; i < strlist.length(); i++) {
         newlist.append(strlist.value(i).split(";").value(0));
     }
     listeProduit->clear();
     *listeProduit = newlist;
     newlist.clear();
-    for (int i = 1; i < strlist.length(); i++)
-    {
+    for (int i = 1; i < strlist.length(); i++) {
         newlist.append(strlist.value(i).split(";").value(1));
     }
     listeCodePrdt->clear();
     *listeCodePrdt = newlist;
+    newlist.clear();
+    strlist = parent_t->getStrFile(parent_t->getFilename(3)).split("\n");
+    for (int i = 1; i < strlist.length(); i++) {
+        newlist.append(strlist.value(i).split(";").value(0));
+    }
+    listeNomMedecin->clear();
+    *listeNomMedecin = newlist;
 }
 
 void CentralWidgetOrdonnance::saveDateDebut(const QDate &date)
@@ -398,10 +333,7 @@ void CentralWidgetOrdonnance::valider()
 {
     writeFile(*tmpString);
     this->close();
-    QFrame *frame = new QFrame;
-    frame->setAutoFillBackground(true);
-    frame->setPalette(QColor(Qt::darkGray));
-    parent_t->setCentralWidget(frame);
+    parent_t->setCentralWidget(new CentralWidgetOrdonnance(parent_t));
 }
 
 void CentralWidgetOrdonnance::annuler()
@@ -427,7 +359,7 @@ void CentralWidgetOrdonnance::writeFile(QString str)
     QStringList sList = str.split("\n");
     for(int i = 1; i < sList.length() - 2; i++) {
         in << strNomMedecin + ";";
-        in << dateDebut->toString(Qt::SystemLocaleShortDate) + ";";
+        in << datePrescr->toString(Qt::SystemLocaleShortDate) + ";";
         in << strDuree + ";";
         in << dateFin->toString(Qt::SystemLocaleShortDate) + ";";
         in << sList.value(i);

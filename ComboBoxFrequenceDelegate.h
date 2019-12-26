@@ -1,40 +1,41 @@
-#ifndef LINEEDITPRODUITDELEGATE_H
-#define LINEEDITPRODUITDELEGATE_H
+#ifndef COMBOBOXFREQUENCEDELEGATE_H
+#define COMBOBOXFREQUENCEDELEGATE_H
 
 #include "mainwindow.h"
 #include "centralwidgetordonnance.h"
 #include <QDebug>
 
-class LineEditProduitDelegate : public QStyledItemDelegate
+class ComboBoxFrequenceDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
-    Q_DISABLE_COPY(LineEditProduitDelegate)
+    Q_DISABLE_COPY(ComboBoxFrequenceDelegate)
     public:
-        explicit LineEditProduitDelegate(CentralWidgetOrdonnance *cwo, QObject* parent = Q_NULLPTR) : QStyledItemDelegate(parent)
+        explicit ComboBoxFrequenceDelegate(CentralWidgetOrdonnance *cwo, QObject* parent = Q_NULLPTR) : QStyledItemDelegate(parent)
         {
             cwo_ = cwo;
         }
 
         QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &/* option */, const QModelIndex &/* index */) const
         {
-            QLineEdit *editor = new QLineEdit(parent);
-            QCompleter *completer = new QCompleter(*cwo_->getListeProduit(), parent);
-            completer->setCaseSensitivity(Qt::CaseInsensitive);
-            editor->setCompleter(completer);
+            QComboBox *editor = new QComboBox(parent);
+            QStringList *sl = new QStringList();
+            *sl << "" << "tous" << "1/2" << "1/3" << "2/3" << "1/4" << "1/5" << "1/6"
+                << "1/7" << "5/7" << "6/7" << "3 semaines sur 4" << "sur mesure (pas encore implémenté)";
+            editor->addItems(*sl);
             return editor;
         }
 
         void setEditorData(QWidget *editor, const QModelIndex &index) const
         {
             QString value = index.model()->data(index, Qt::EditRole).toString();
-            QLineEdit *lineEdit = static_cast<QLineEdit*>(editor);
-            lineEdit->setText(value);
+            QComboBox *cb = static_cast<QComboBox*>(editor);
+            cb->setCurrentText(value);
         }
 
         void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
         {
-            QLineEdit *lineEdit = static_cast<QLineEdit*>(editor);
-            QString value = lineEdit->text();
+            QComboBox *lineEdit = static_cast<QComboBox*>(editor);
+            QString value = lineEdit->currentText();
             model->setData(index, value, Qt::EditRole);
         }
 
@@ -47,4 +48,4 @@ class LineEditProduitDelegate : public QStyledItemDelegate
         CentralWidgetOrdonnance *cwo_;
 };
 
-#endif // LINEEDITPRODUITDELEGATE_H
+#endif // COMBOBOXFREQUENCEDELEGATE_H

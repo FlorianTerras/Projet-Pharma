@@ -1,18 +1,16 @@
-#ifndef WINDOWVIEWPATIENT_H
-#define WINDOWVIEWPATIENT_H
+#ifndef WINDOWVIEWMEDECIN_H
+#define WINDOWVIEWMEDECIN_H
 
 #include "mainwindow.h"
 #include "tablemodelpatient.h"
 
-class WindowViewPatient : public QWidget
+class WindowViewMedecin : public QWidget
 {
     Q_OBJECT
 
     public:
-        WindowViewPatient(MainWindow *parent, int numFile = 1);
+        WindowViewMedecin(MainWindow *parent);
         void saveAllInfosFromLine(int line);
-        int getIndex(QString str);
-        int getIndex2(QString str);
 
     public slots:
         void addPatient();
@@ -22,22 +20,19 @@ class WindowViewPatient : public QWidget
         void supprPatient();
         void supprPatientOK();
         void actualiser();
-        void changeCboxSecteur();
-        void saveCboxIndex(int currentRow);
-        void saveCboxIndex2(int currentRow);
         void saveTextNom(QString str);
         void saveTextPrenom(QString str);
-        void saveTextInsee(QString str);
-        void saveTextSexe(QString str);
-        void saveTextNomJF(QString str);
+        void saveTextSpec(QString str);
+        void saveTextAM(QString str);
+        void saveTextRPPS(QString str);
         void saveTextRue1(QString str);
         void saveTextRue2(QString str);
         void saveTextCodeP(QString str);
         void saveTextVille(QString str);
-        void saveTextDateN(QString str);
-        void saveTextDateD(QString str);
+        void saveTextTel(QString str);
+        void saveTextMail(QString str);
+        void saveTextFax(QString str);
         void saveSelectedRow(const QModelIndex &index);
-        int getSelectedTableRow();
 
     private:
         TableModelPatient *model;
@@ -47,21 +42,18 @@ class WindowViewPatient : public QWidget
         int selectedTableRow;
         MainWindow *parent_t;
 
-        QComboBox *cboxSecteur;
-
-        int cboxIndex;
-        int cboxIndex2;
-
-        QString strDateN;
         QString strNom;
         QString strPrenom;
-        QString strInsee;
-        QString strSexe;
-        QString strDateD;
-        QString strNomJF;
+        QString strSpec;
+        QString strAM;
+        QString strRPPS;
         QString strRue1;
         QString strRue2;
         QString strCodeP;
         QString strVille;
+        QString strTel;
+        QString strMail;
+        QString strFax;
 };
-#endif // WINDOWVIEWPATIENT_H
+
+#endif // WINDOWVIEWMEDECIN_H

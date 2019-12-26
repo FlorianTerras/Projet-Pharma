@@ -39,10 +39,8 @@ QVariant TableModelHistory::data(const QModelIndex &index, int role) const
             strloSplit = strlo.value(i).split(";");
             strliSplit.clear();
             strliSplit = tm_strList.value(index.row()).split(";");
-            qDebug() << "Strli :" << strliSplit.value(index.column());
 
             if (strloSplit.value(index.column() - 4) == strliSplit.value(index.column()) && (index.column() >= 4 && index.column() <= 5)) {
-                qDebug() << "red : " << strloSplit.value(index.column()-4) << "=" << strliSplit.value(index.column());
                 return (QColor(137,255,102));
             } else if (strloSplit.value(index.column() - 4) == strliSplit.value(index.column()) && (index.column() >= 6 && index.column() <= 13)) {
                 if (strloSplit.value(1) == strliSplit.value(5))
@@ -63,7 +61,7 @@ QVariant TableModelHistory::data(const QModelIndex &index, int role) const
 QVariant TableModelHistory::headerData(int section, Qt::Orientation orientation, int role) const
 {
     QStringList strList;
-    strList << "Médecin" << "Date début" << "Durée" << "Date fin"
+    strList << "Médecin" << "Date préscr." << "Durée" << "Date fin"
             << "Code Produit" << "Nom Produit" << "Matin" << "Midi"
             << "Soir" << "Couché" << "??H" << "??H" << "Fréquence"
             << "Duree" << "Si Bes." << "Commentaire";

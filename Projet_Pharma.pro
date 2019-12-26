@@ -2,6 +2,7 @@ QT += \
     widgets
 
 HEADERS += \
+    ComboBoxFrequenceDelegate.h \
     centralwidgetordonnance.h \
     lineeditproduitdelegate.h \
     mainwindow.h \
@@ -10,9 +11,10 @@ HEADERS += \
     tablemodelordo.h \
     tablemodelpatient.h \
     windowviewgroupe.h \
+    windowviewmedecin.h \
     windowviewpatient.h \
     windowviewproduit.h \
-    windowviewsecteur.h
+    windowviewsecteur.h \
 
 SOURCES += \
     centralwidgetordonnance.cpp \
@@ -23,6 +25,7 @@ SOURCES += \
     tablemodelordo.cpp \
     tablemodelpatient.cpp \
     windowviewgroupe.cpp \
+    windowviewmedecin.cpp \
     windowviewpatient.cpp \
     windowviewproduit.cpp \
-    windowviewsecteur.cpp
+    windowviewsecteur.cpp \

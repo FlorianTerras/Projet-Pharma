@@ -74,8 +74,7 @@ void WindowViewSecteur::addSecteurOK()
         splitLine[cboxIndex].append(strNom);
         splitLine[cboxIndex].append(",");
         QString newstr;
-        for(int i = 0; i < (splitLine.length()); i++)
-        {
+        for(int i = 0; i < (splitLine.length()); i++) {
             newstr.push_back(splitLine[i]);
             newstr.push_back("\n");
         }
@@ -90,9 +89,7 @@ void WindowViewSecteur::addSecteurOK()
         out << newstr;
         strNom.clear();
         cboxIndex = 0;
-    }
-    else
-    {
+    } else {
         QMessageBox::warning(this, "Erreur", "Veuillez indiquer un nom");
     }
 }
@@ -100,14 +97,12 @@ void WindowViewSecteur::addSecteurOK()
 void WindowViewSecteur::supprSecteur()
 {
     QMessageBox msgBox(this);
-    if (selectedTableCol >= 0)
-    {
+    if (selectedTableCol >= 0) {
         msgBox.setText("Ce secteur va être supprimé : " + parent_t->getTabListeSecteur()->value(selectedTableCol).value(selectedTableRow));
         msgBox.setInformativeText("Etes vous sûr ?");
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::Yes);
         int ret = msgBox.exec();
-
         switch (ret) {
             case QMessageBox::Yes:
                 supprSecteurOK();
@@ -152,7 +147,6 @@ void WindowViewSecteur::supprSecteurOK()
            newstr.append(newstrSecteur + "\n");
        }
     }
-
     QFile file(parent_t->getFilename(0));
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir " + file.fileName());
