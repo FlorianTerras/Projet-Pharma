@@ -54,6 +54,7 @@ QWidget *CentralWidgetOrdonnance::createInfoWidget()
     GL->addWidget(label, 1, 2);
     label = new QLabel("N° INSEE", infoOrdo);
     GL->addWidget(label, 3, 1);
+
     QLineEdit *lineEdit = new QLineEdit(strlist.value(1));
     GL->addWidget(lineEdit, 2, 1);
     lineEdit = new QLineEdit(strlist.value(2));

@@ -9,14 +9,13 @@ WindowViewMedecin::WindowViewMedecin(MainWindow *parent)
     QVBoxLayout *VBL = new QVBoxLayout();
     view = new QTableView(this);
     this->setWindowFlag(Qt::Window);
-    this->setWindowTitle("Patients");
+    this->setWindowTitle("Médecins");
     this->resize(1600, 850);
     model = new TableModelPatient();
     model->populateData(parent_t->getStrFile(parent_t->getFilename(_numFile)));
     view->setModel(model);
     view->resizeColumnsToContents();
     view->setSelectionBehavior(QAbstractItemView::SelectRows);
-
     QHBoxLayout *HBL = new QHBoxLayout();
     QPushButton *button_ajouter = new QPushButton("Ajouter");
     HBL->addWidget(button_ajouter);
@@ -38,7 +37,7 @@ WindowViewMedecin::WindowViewMedecin(MainWindow *parent)
 void WindowViewMedecin::addPatient()
 {
     QWidget *window = new QWidget(this, Qt::Dialog);
-    window->setWindowTitle("Ajouter un patient");
+    window->setWindowTitle("Ajouter un médecin");
     QVBoxLayout *VBL = new QVBoxLayout(window);
     QFormLayout *QFL = new QFormLayout;
     VBL->addLayout(QFL);
@@ -123,7 +122,7 @@ void WindowViewMedecin::modifyPatient()
 
     if (selectedTableRow >= 0) {
         saveAllInfosFromLine(selectedTableRow + 1);
-        window->setWindowTitle("Modifier un patient");
+        window->setWindowTitle("Modifier un médecin");
         nom->setText(strNom);
         QFL->addRow("Nom :",nom);
         prenom->setText(strPrenom);
@@ -159,7 +158,7 @@ void WindowViewMedecin::modifyPatient()
         window->resize(600, 550);
         window->show();
     } else {
-        QMessageBox::warning(window, "Erreur", "Veuillez selectionner un patient");
+        QMessageBox::warning(window, "Erreur", "Veuillez selectionner un médecin");
         return;
     }
     connect(nom, SIGNAL(textChanged(QString)), this, SLOT(saveTextNom(QString)));
@@ -302,7 +301,7 @@ void WindowViewMedecin::supprPatientOK()
             newstr.append(strList.value(i));
             newstr.append("\n");
         } else
-            qDebug() << "Patient supprimé : " << strList.value(i);
+            qDebug() << "Médecin supprimé : " << strList.value(i);
     }
     QFile file(parent_t->getFilename(_numFile));
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {

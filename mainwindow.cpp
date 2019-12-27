@@ -11,7 +11,7 @@
 MainWindow::MainWindow()
 {
     filenameGroupe = "Data/groupes.txt";
-    filenamePatients = "Data/Patient Baou.txt";
+    filenamePatients = "Data/patients.txt";
     filenameProduits = "Data/Produits.csv";
     filenameMedecin = "Data/medecin.txt";
 
